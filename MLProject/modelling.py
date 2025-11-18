@@ -1,7 +1,8 @@
-# Versi sederhana untuk CI Workflow
+# File: MLProject/modelling.py
 
 import pandas as pd
-import joblib
+import mlflow 
+from mlflow.models import infer_signature 
 from sklearn.linear_model import LogisticRegression
 import os
 
@@ -11,12 +12,8 @@ print("Script modelling.py (CI) dimulai...")
 DATA_DIR = 'dataset_preprocessing'
 TRAIN_DATA_PATH = os.path.join(DATA_DIR, 'train_processed.csv')
 
-# Definisikan path output untuk model
+# Definisikan path output untuk folder model
 MODEL_OUTPUT_DIR = "model"
-MODEL_PATH = os.path.join(MODEL_OUTPUT_DIR, 'model.pkl')
-
-# Buat folder 'model' jika belum ada
-os.makedirs(MODEL_OUTPUT_DIR, exist_ok=True)
 
 # 2. Fungsi untuk Memuat Data
 def load_data(train_path):
@@ -48,10 +45,17 @@ def train_model():
     
     print(f"Model selesai dilatih.")
     
-    # 4. Menyimpan Model ke File
-    print(f"Menyimpan model ke: {MODEL_PATH}")
-    joblib.dump(model, MODEL_PATH)
-    print("Model berhasil disimpan.")
+    # 4. Menyimpan Model ke File (Format MLflow)
+    print(f"Menyimpan model ke: {MODEL_OUTPUT_DIR}")
+    
+    signature = infer_signature(X_train, model.predict(X_train))
+    
+    mlflow.sklearn.save_model(
+        sk_model=model,
+        path=MODEL_OUTPUT_DIR,
+        signature=signature
+    )
+    print("Model berhasil disimpan dalam format MLflow.")
 
 # 5. Menjalankan Skrip
 if __name__ == "__main__":
