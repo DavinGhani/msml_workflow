@@ -12,11 +12,11 @@ jobs:
       contents: write
     
     steps:
-      # Langkah 1: Download kode dari repository
+      # Langkah 1: Download kode
       - name: 1. Check out code
         uses: actions/checkout@v4
 
-      # Langkah 2: Siapkan environment Conda
+      # Langkah 2: Siapkan Conda
       - name: 2. Set up Conda Environment
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -30,7 +30,7 @@ jobs:
         shell: bash -l {0}
         run: pip install mlflow==2.19.0 joblib
 
-      # Langkah 4: Menjalankan MLflow Project
+      # Langkah 4: Jalankan MLflow Project (Training)
       - name: 4. Run MLflow Project (Training)
         shell: bash -l {0}
         run: |
@@ -40,33 +40,36 @@ jobs:
           cd ..
           echo "Training complete. Model 'model' folder created."
 
-      # Langkah 5: Commit Model
+      # Langkah 5: Commit Model ke GitHub
       - name: 5. Commit Model Artifact
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Auto: Update trained model"
           file_pattern: "MLProject/model/*"
 
-      # Langkah 6: Login, Build, and Push Docker Image 
-      - name: 6. Login, Build, and Push Docker Image
+      # Langkah 6: Login ke Docker Hub 
+      - name: 6. Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }} 
+
+      # Langkah 7: Build Docker Model 
+      - name: 7. Build Docker Model
         shell: bash -l {0}
         run: |
-          echo "Logging into Docker Hub..."
-          # Login manual menggunakan --password-stdin
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-          echo "Login successful."
-          
-          echo "Building Docker image with MLflow..."
           cd MLProject
+          # Kita beri nama lokal yang sederhana
+          mlflow models build-docker --model-uri "model" --name "msml-model-local"
+
+      # Langkah 8: Tag Docker Image 
+      - name: 8. Tag Docker Image
+        run: |
+          # Kita tag image lokal ke nama repository Docker Hub yang benar
+          docker tag msml-model-local ${{ secrets.DOCKER_USERNAME }}/msml-model:latest
           
-          # Definisikan nama image LENGKAP
-          IMAGE_WITH_TAG="thavn22/msml-model:latest"
-          
-          # Bangun image
-          mlflow models build-docker --model-uri "model" --name "$IMAGE_WITH_TAG"
-          echo "Docker image built: $IMAGE_WITH_TAG"
-          
-          echo "Pushing Docker image to Docker Hub..."
-          # Push image
-          docker push "$IMAGE_WITH_TAG"
-          echo "Docker image pushed successfully."
+      # Langkah 9: Push Docker Image 
+      - name: 9. Push Docker Image
+        run: |
+          # Kita push tag yang baru saja kita buat
+          docker push ${{ secrets.DOCKER_USERNAME }}/msml-model:latest
