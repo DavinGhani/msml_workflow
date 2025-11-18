@@ -5,6 +5,7 @@ import mlflow
 from mlflow.models import infer_signature 
 from sklearn.linear_model import LogisticRegression
 import os
+import shutil
 
 print("Script modelling.py (CI) dimulai...")
 
@@ -47,6 +48,11 @@ def train_model():
     
     # 4. Menyimpan Model ke File (Format MLflow)
     print(f"Menyimpan model ke: {MODEL_OUTPUT_DIR}")
+    
+    if os.path.exists(MODEL_OUTPUT_DIR):
+        print(f"Menghapus folder model lama di '{MODEL_OUTPUT_DIR}'...")
+        shutil.rmtree(MODEL_OUTPUT_DIR)
+        print("Folder lama berhasil dihapus.")
     
     signature = infer_signature(X_train, model.predict(X_train))
     
