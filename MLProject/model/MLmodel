@@ -14,7 +14,7 @@ flavors:
     sklearn_version: 1.5.0
 mlflow_version: 2.19.0
 model_size_bytes: 1304
-model_uuid: 35b5f91b0ad5484ca24deba8049c16f0
+model_uuid: bd719e986a8547468df726c6638a968a
 signature:
   inputs: '[{"type": "double", "name": "age", "required": true}, {"type": "double",
     "name": "trestbps", "required": true}, {"type": "double", "name": "chol", "required":
@@ -39,4 +39,4 @@ signature:
     "name": "thal_3", "required": true}]'
   outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "int64", "shape": [-1]}}]'
   params: null
-utc_time_created: '2025-11-18 05:37:40.630483'
+utc_time_created: '2025-11-18 06:02:37.661325'
